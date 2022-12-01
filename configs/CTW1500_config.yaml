@@ -1,0 +1,106 @@
+# Builtin Configurations(DO NOT CHANGE THESE CONFIGURATIONS unlesee you know exactly what you are doing)
+enable_modelarts: False
+# url for Qizhi
+data_url: ""
+train_url: ""
+checkpoint_url: ""
+# path for local
+# data_path: "/cache/data"
+# output_path: "/cache/train"
+# load_path: "/cache/checkpoint_path"
+# enable_profiling: False
+# checkpoint_path: "./checkpoint/"
+# checkpoint_file: "./model/pretrained_model.ckpt"
+# modelarts_home: "/home/work/user-job-dir"
+object_name: "fcenet"
+
+
+# ======================================================================================
+# Training options
+seed: 2022
+device_target: "GPU"
+context_mode: "pynative"  # should be in ['graph', 'pynative']
+device_num: 1
+device_id: 0
+
+
+# ======================================================================================
+# Training options
+pre_trained: "./pretrained_model/pretrained_model.ckpt"
+run_distribute: False
+
+# backbone
+BACKBONE_LAYER_NUMS: [3, 4, 6, 3]
+BACKBONE_IN_CHANNELS: [64, 256, 512, 1024]
+BACKBONE_OUT_CHANNELS: [256, 512, 1024, 2048]
+
+# neck
+NECK_OUT_CHANNEL: 256
+
+# head
+in_channels: 256
+scales: [8, 16, 32]
+alpha: 1.0
+beta: 2.0
+fourier_degree: 5
+num_sample: 50
+
+# lr
+BASE_LR: 1e-3
+END_LR: 1e-7
+
+# dataset for train
+Data_NAME: "CTW1500"
+TRAIN_ROOT_DIR: "./CTW1500" 
+TRAIN_BATCH_SIZE: 5 
+TRAIN_EPOCH: 1500
+TRAIN_DROP_REMAINDER: True
+TRAIN_MODEL_SAVE_PATH: "./ctw_output"
+
+# ======================================================================================
+# Eval options
+ckpt: "/home/data1/lkd/Mindspore/fcenet/ctw_output/ckpt_0/FCENET_7-1500_2.ckpt" #"/home/data1/lkd/Mindspore/fcenet/ctw_bs12_card3/ckpt_0/FCENET_1-1300_27.ckpt" # 0.828
+TEST_ROOT_DIR: "./CTW1500_tiny"
+TEST_DROP_REMAINDER: False
+INFERENCE: True
+onnx_path: ""
+
+
+# ======================================================================================
+# Infer det options
+save_res_path: "./output/fce_r50_ctw/predicts_ctw.txt"
+
+# ======================================================================================
+#export options
+# device_id: 0
+# batch_size: 1
+# file_name: "fcenet"
+# file_format: "MINDIR"
+
+# ======================================================================================
+#postprocess
+# result_path: "./scripts/result_Files"
+# img_path: ""
+
+
+---
+# Help description for each configuration
+enable_modelarts: "Whether training on modelarts default: False"
+data_url: "Url for modelarts"
+train_url: "Url for modelarts"
+data_path: "The location of input data"
+output_pah: "The location of the output file"
+device_target: "device id of GPU or Ascend. (Default: None)"
+enable_profiling: "Whether enable profiling while training default: False"
+run_distribute: "Run distribute, default is false."
+pre_trained: "Pretrain file path"
+ckpt: "trained model path"
+device_id: "device id"
+batch_size: "batch size"
+file_name: "output file name"
+file_format: "file format choices[AIR, MINDIR, ONNX]"
+object_home: "your direction name"
+modelarts_home: "modelarts working path"
+result_path: "result Files path."
+img_path: "image files path."
+onnx_path: "onnx files path"
