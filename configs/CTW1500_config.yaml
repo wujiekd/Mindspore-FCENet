@@ -46,8 +46,8 @@ fourier_degree: 5
 num_sample: 50
 
 # lr
-BASE_LR: 1e-3
-END_LR: 1e-7
+BASE_LR: 2e-3
+END_LR: 2e-7
 
 # dataset for train
 Data_NAME: "CTW1500"
@@ -59,8 +59,8 @@ TRAIN_MODEL_SAVE_PATH: "./ctw_output"
 
 # ======================================================================================
 # Eval options
-ckpt: "/home/data1/lkd/Mindspore/fcenet/ctw_output/ckpt_0/FCENET_7-1500_2.ckpt" #"/home/data1/lkd/Mindspore/fcenet/ctw_bs12_card3/ckpt_0/FCENET_1-1300_27.ckpt" # 0.828
-TEST_ROOT_DIR: "./CTW1500_tiny"
+ckpt: "/home/data/lkd/fcenet/ctw_bs6_card2/ckpt_0/FCENET-300_41.ckpt" #"/home/data1/lkd/Mindspore/fcenet/ctw_bs12_card3/ckpt_0/FCENET_1-1300_27.ckpt" # 0.828
+TEST_ROOT_DIR: "./CTW1500"
 TEST_DROP_REMAINDER: False
 INFERENCE: True
 onnx_path: ""

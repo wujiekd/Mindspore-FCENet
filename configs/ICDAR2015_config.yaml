@@ -44,25 +44,40 @@ fourier_degree: 5
 num_sample: 50
 
 # lr
-BASE_LR: 1e-3
-END_LR: 1e-7
+BASE_LR: 2e-3
+END_LR: 2e-7
 
 # dataset for train
 Data_NAME: "ICDAR2015"
 TRAIN_ROOT_DIR: "./ICDAR2015" 
-TRAIN_BATCH_SIZE: 5 
+TRAIN_BATCH_SIZE: 8 
 TRAIN_EPOCH: 1500
 TRAIN_DROP_REMAINDER: True
 TRAIN_MODEL_SAVE_PATH: "./icdar_output"
 
 # ======================================================================================
 # Eval options
-ckpt:  "/home/data1/lkd/Mindspore/fcenet/icdar_bs8_card2_extra/ckpt_0/FCENET_2-20_31.ckpt"
+ckpt:  "/home/data/lkd/fcenet/icdar_bs8_card4/ckpt_0/FCENET-1400_31.ckpt" #1400 hmean:0.844
 TEST_ROOT_DIR: "./ICDAR2015"
 TEST_DROP_REMAINDER: False
 INFERENCE: True
 onnx_path: ""
 
+#  thr 0.3:precision:0.84412 recall:0.82908 hmean:0.83653
+
+#  thr 0.4:precision:0.85152 recall:0.82282 hmean:0.83692
+
+#  thr 0.5:precision:0.86324 recall:0.81753 hmean:0.83976
+
+#  thr 0.6:precision:0.87158 recall:0.81367 hmean:0.84163
+
+#  thr 0.7:precision:0.88350 recall:0.80693 hmean:0.84348
+
+#  thr 0.8:precision:0.89249 recall:0.79538 hmean:0.84114
+
+#  thr 0.9:precision:0.91143 recall:0.76793 hmean:0.83355
+# hmean:0.8434826371414192
+# fps:1.6222960576528387
 # ======================================================================================
 # Infer det options
 save_res_path: "./output/fce_r50_icdar/predicts_icdar.txt"

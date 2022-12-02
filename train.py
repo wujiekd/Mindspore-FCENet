@@ -31,6 +31,7 @@ from src.schedule.lr_schedule import dynamic_lr
 from src.config import config
 import mindspore as ms
 from mindspore.communication.management import init, get_rank, get_group_size
+import os
 
 binOps = {
     ast.Add: operator.add,
@@ -40,6 +41,7 @@ binOps = {
     ast.Mod: operator.mod
 }
 
+#os.environ['CUDA_VISIBLE_DEVICES'] = '3'
 
 def arithmeticeval(s):
     node = ast.parse(s, mode='eval')
@@ -119,7 +121,7 @@ def train():
     config.INFERENCE = False
     net = FCENet(config)
     net = net.set_train()
-
+    #print(net)
     if config.pre_trained:
         param_dict = load_checkpoint(config.pre_trained)
         load_param_into_net(net, param_dict, strict_load=True)
@@ -129,7 +131,7 @@ def train():
 
     lrs = dynamic_lr(config.BASE_LR, config.END_LR, config.TRAIN_EPOCH , step_size)
     print('Load learning rate schedule done!')
-    opt = nn.SGD(params=net.trainable_params(), learning_rate=lrs,
+    opt = nn.Momentum(params=net.trainable_params(), learning_rate=lrs,
                  momentum=0.90, weight_decay=5e-4)
     net = WithLossCell(net, criterion)
     

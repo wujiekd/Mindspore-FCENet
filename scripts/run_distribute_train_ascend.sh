@@ -13,22 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
+export DEVICE_NUM=4
 
 # mpirun --allow-run-as-root -n $DEVICE_NUM \
 #   python train.py \
 #   --device_num=$DEVICE_NUM \
 #   --device_target="Ascend" \
-#   --TRAIN_BATCH_SIZE=12 \
+#   --TRAIN_BATCH_SIZE=6 \
 #   --config_path='./configs/CTW1500_config.yaml' \
-#   --TRAIN_MODEL_SAVE_PATH="./ctw_ceshi" \
-#   --run_distribute=True > log/ctw_ceshi.log 2>&1 &
+#   --TRAIN_MODEL_SAVE_PATH="./ctw_bs6_card4" \
+#   --run_distribute=True > log/ctw_bs6_card4.log 2>&1 &
 
 
-# mpirun --allow-run-as-root -n $DEVICE_NUM \
-#   python train.py \
-#   --device_num=$DEVICE_NUM \
-#   --device_target="Ascend" \
-#   --TRAIN_BATCH_SIZE=16 \
-#   --config_path='./configs/ICDAR2015_config.yaml' \
-#   --TRAIN_MODEL_SAVE_PATH="./icdar_ceshi" \
-#   --run_distribute=True > log/icdar_ceshi.log 2>&1 &
+
+mpirun --allow-run-as-root -n $DEVICE_NUM \
+  python train.py \
+  --device_num=$DEVICE_NUM \
+  --device_target="GPU" \
+  --TRAIN_BATCH_SIZE=8 \
+  --config_path='./configs/ICDAR2015_config.yaml' \
+  --TRAIN_MODEL_SAVE_PATH="./icdar_bs8_card4" \
+  --run_distribute=True > log/icdar_bs8_card4.log 2>&1 &

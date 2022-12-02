@@ -39,19 +39,18 @@ class ResidualBlock(nn.Cell):
     def __init__(self,
                  in_channels,
                  out_channels,
-                 stride=1,
-                 momentum=0.1):
+                 stride=1,):
         super(ResidualBlock, self).__init__()
 
         out_chls = out_channels // self.expansion
         self.conv1 = _conv(in_channels, out_chls, kernel_size=1, stride=1)
-        self.bn1 = _bn(out_chls, momentum=momentum)
+        self.bn1 = _bn(out_chls, )
 
         self.conv2 = _conv(out_chls, out_chls, kernel_size=3, stride=stride, padding=1, pad_mode='pad')
-        self.bn2 = _bn(out_chls, momentum=momentum)
+        self.bn2 = _bn(out_chls, )
 
         self.conv3 = _conv(out_chls, out_channels, kernel_size=1, stride=1)
-        self.bn3 = _bn(out_channels, momentum=momentum)
+        self.bn3 = _bn(out_channels, )
 
         self.relu = P.ReLU()
         self.downsample = (in_channels != out_channels)
@@ -59,7 +58,7 @@ class ResidualBlock(nn.Cell):
         if self.downsample or self.stride != 1:
             self.conv_down_sample = _conv(in_channels, out_channels,
                                           kernel_size=1, stride=stride)
-            self.bn_down_sample = _bn(out_channels, momentum=momentum)
+            self.bn_down_sample = _bn(out_channels, )
 
         self.add = P.Add()
 

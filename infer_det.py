@@ -32,12 +32,49 @@ from src.postprocess.fce_process import FCEPostProcess
 from src.metric.det_metric import DetFCEMetric
 from src.config import config
 import mindspore as ms
+from mindspore.communication.management import init, get_rank, get_group_size
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
-context.set_context(mode=context.GRAPH_MODE, device_target=config.device_target, save_graphs=False,
-                    save_graphs_path=".")
+def init_env(cfg):
+    """初始化运行时环境."""
+    ms.set_seed(cfg.seed)
+    if cfg.device_target != "None":
+        if cfg.device_target not in ["Ascend", "GPU", "CPU"]:
+            raise ValueError(f"Invalid device_target: {cfg.device_target}, "
+                             f"should be in ['None', 'Ascend', 'GPU', 'CPU']")
+        ms.set_context(device_target=cfg.device_target)
 
+
+    if cfg.context_mode not in ["graph", "pynative"]:
+        raise ValueError(f"Invalid context_mode: {cfg.context_mode}, "
+                         f"should be in ['graph', 'pynative']")
+    context_mode = ms.GRAPH_MODE if cfg.context_mode == "graph" else ms.PYNATIVE_MODE
+    ms.set_context(mode=context_mode)
+
+    cfg.device_target = ms.get_context("device_target")
+
+    if cfg.device_target == "CPU":
+        cfg.device_id = 0
+        cfg.device_num = 1
+        cfg.rank_id = 0
+
+    if hasattr(cfg, "device_id") and isinstance(cfg.device_id, int):
+        ms.set_context(device_id=cfg.device_id)
+    if cfg.device_num > 1:
+        init()
+        print("run distribute!", flush=True)
+        group_size = get_group_size()
+        if cfg.device_num != group_size:
+            raise ValueError(f"the setting device_num: {cfg.device_num} not equal to the real group_size: {group_size}")
+        cfg.rank_id = get_rank()
+        ms.set_auto_parallel_context(parallel_mode=ms.ParallelMode.DATA_PARALLEL, gradients_mean=True)
+        if hasattr(cfg, "all_reduce_fusion_config"):
+            ms.set_auto_parallel_context(all_reduce_fusion_config=cfg.all_reduce_fusion_config)
+    else:
+        cfg.device_num = 1
+        cfg.rank_id = 0
+        print("run standalone!", flush=True)
+        
 def draw_det_res(dt_boxes, config, img, img_name, save_path):
     if len(dt_boxes) > 0:
         import cv2
@@ -53,6 +90,9 @@ def draw_det_res(dt_boxes, config, img, img_name, save_path):
 
 
 def infer_det():
+    init_env(config)
+    config.mode = False
+    
     ds = test_dataset_creator(config)
 
     config.INFERENCE = True
@@ -63,12 +103,11 @@ def infer_det():
     print('parameters loaded!')
 
     if config.Data_NAME ==  "CTW1500":
-        PostProcess = FCEPostProcess(config.scales)
+        PostProcess = FCEPostProcess(config.scales,alpha=config.alpha,beta=config.beta,)
     elif config.Data_NAME ==  "ICDAR2015":
-        PostProcess = FCEPostProcess(config.scales,text_repr_type='quad')
+        PostProcess = FCEPostProcess(config.scales,text_repr_type='quad',alpha=config.alpha,beta=config.beta,)
 
     iters = ds.create_tuple_iterator(output_numpy=True)
-    count = 0
     
     save_res_path = config.save_res_path
     if not os.path.exists(os.path.dirname(save_res_path)):
@@ -76,7 +115,6 @@ def infer_det():
         
     with open(save_res_path, "wb") as fout:
         for batch in tqdm(iters):
-            count += 1
             # get data
             image,img_shape, polys, ignore_tags,img_path = batch
             image = Tensor(image, ms.float32)

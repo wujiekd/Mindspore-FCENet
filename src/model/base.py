@@ -29,5 +29,5 @@ def Xavier_conv(in_channels, out_channels, kernel_size=3, stride=1, padding=0, p
                      kernel_size=kernel_size, stride=stride, padding=padding,
                      pad_mode=pad_mode, weight_init=init_value, has_bias=has_bias)
     
-def _bn(channels, momentum=0.1):
-    return nn.BatchNorm2d(channels, momentum=momentum)
+def _bn(channels,):
+    return nn.BatchNorm2d(channels, )

@@ -282,7 +282,6 @@ class FCEPostProcess(object):
         self.fourier_degree = fourier_degree
         self.num_reconstr_points = num_reconstr_points
         self.decoding_type = decoding_type
-        # self.loss_module = build_loss(loss)
         self.score_thr = score_thr
         self.nms_thr = nms_thr
         self.alpha = alpha

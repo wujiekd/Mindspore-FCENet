@@ -22,7 +22,7 @@ import yaml
 
 
 global_yaml = './configs/ICDAR2015_config.yaml'
-
+#global_yaml = './configs/CTW1500_config.yaml'
 
 class Config:
     """

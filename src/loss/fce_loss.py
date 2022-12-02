@@ -25,8 +25,8 @@ class FCELoss(nn.Cell):
         self.num_sample = num_sample
         self.ohem_ratio = ohem_ratio
         self.sort_descending = ms.ops.Sort(descending=True)
-        equation = "ak, kn-> an"
-        self.einsum = ops.Einsum(equation)
+        # equation = "ak, kn-> an"
+        # self.einsum = ops.Einsum(equation)
         self.threshold0 = Tensor(0.5, ms.float32)
         self.greater = ops.GreaterEqual()
         self.eps = ms.Tensor(1e-8, ms.float32)
@@ -108,11 +108,11 @@ class FCELoss(nn.Cell):
         tr_neg_mask = 1 - tr_train_mask
 
         #print(int(tr_train_mask.sum().item(0)))
-        if int(tr_train_mask.sum().item(0)) > 0:
+        if ops.stop_gradient(tr_train_mask.sum()) > 0:
             loss_tcl_none = ops.cross_entropy(tcl_pred,tcl_mask.astype(ms.int32), reduction='none')
-            loss_tcl_pos = (loss_tcl_none * self.greater(tr_train_mask, self.threshold0)).sum() /self.greater(tr_train_mask, self.threshold0).sum()
+            loss_tcl_pos = (loss_tcl_none * self.greater(tr_train_mask, self.threshold0).astype('float32')).sum() /self.greater(tr_train_mask, self.threshold0).astype('float32').sum()
             
-            loss_tcl_neg = (loss_tcl_none * self.greater(tr_neg_mask, self.threshold0)).sum() /self.greater(tr_neg_mask, self.threshold0).sum()
+            loss_tcl_neg = (loss_tcl_none * self.greater(tr_neg_mask, self.threshold0).astype('float32')).sum() /self.greater(tr_neg_mask, self.threshold0).astype('float32').sum()
             
             loss_tcl = loss_tcl_pos + 0.5 * loss_tcl_neg
 
@@ -121,7 +121,7 @@ class FCELoss(nn.Cell):
         loss_reg_x = ms.Tensor(0., ms.float32)#torch.tensor(0.).float().to(device)
         loss_reg_y = ms.Tensor(0., ms.float32)#torch.tensor(0.).float().to(device)
 
-        if int(tr_train_mask.sum().item(0)) > 0:
+        if ops.stop_gradient(tr_train_mask.sum()) > 0:
             weight = (tr_mask.astype('float32') + tcl_mask.astype('float32')) / 2
             weight = weight.view((-1, 1)) 
             ft_x, ft_y = self.fourier2poly(x_map, y_map)
@@ -130,60 +130,33 @@ class FCELoss(nn.Cell):
             
             loss_x = ops.smooth_l1_loss(ft_x_pre,ft_x,reduction='none')
             loss_reg_x = weight * loss_x
-            loss_reg_x = (loss_reg_x * self.greater(tr_train_mask.view((-1, 1)) , self.threshold0)).sum() /self.greater(tr_train_mask.view((-1, 1)), self.threshold0).sum()/dim
+            loss_reg_x = (loss_reg_x * self.greater(tr_train_mask.view((-1, 1)) , self.threshold0).astype('float32')).sum() /self.greater(tr_train_mask.view((-1, 1)), self.threshold0).astype('float32').sum()/dim
             
             loss_y = ops.smooth_l1_loss(ft_y_pre,ft_y,reduction='none')
             loss_reg_y = weight * loss_y
-            loss_reg_y = (loss_reg_y * self.greater(tr_train_mask.view((-1, 1)) , self.threshold0)).sum() /self.greater(tr_train_mask.view((-1, 1)), self.threshold0).sum()/dim
+            loss_reg_y = (loss_reg_y * self.greater(tr_train_mask.view((-1, 1)) , self.threshold0).astype('float32')).sum() /self.greater(tr_train_mask.view((-1, 1)), self.threshold0).astype('float32').sum()/dim
         
         
         return loss_tr, loss_tcl, loss_reg_x, loss_reg_y
 
     def ohem(self, predict, target, train_mask):
-        # pos = ops.stop_gradient(((target * train_mask) > self.threshold0).astype(ms.float32))
-        # neg = ops.stop_gradient((((1 - target) * train_mask) > self.threshold0).astype(ms.float32))
+        pos = ops.stop_gradient(((target * train_mask) > self.threshold0).astype(ms.float32))
+        neg = ops.stop_gradient((((1 - target) * train_mask) > self.threshold0).astype(ms.float32))
 
-        # n_pos = ops.stop_gradient(pos.sum())
-        # n_neg = ops.stop_gradient(min(neg.sum(), self.ohem_ratio * n_pos).astype(ms.int32))
-        # if n_pos < 1:
-        #     n_neg = ms.Tensor(100, ms.int32)
-        # loss = ops.cross_entropy(predict, target, reduction='none')
-        # loss_pos = (loss * pos).sum()
-        # loss_neg = loss * neg
-        # if neg.sum() > n_neg:
-        #     negative_value, _ = self.sort_descending(loss_neg)  # Top K
-        #     con_k = negative_value[n_neg - 1]
-        #     con_mask = ops.stop_gradient((negative_value >= con_k).astype(negative_value.dtype))
-        #     loss_neg = negative_value * con_mask
-        # return (loss_pos + loss_neg.sum()) / (n_pos + n_neg.astype(ms.float32) + 1e-7)
-        
-        pos = self.greater(target * train_mask, self.threshold0)
-        neg = self.greater((1 - target) * train_mask, self.threshold0) 
-
-        n_pos = int(pos.sum().astype('float32').item(0))
-
-        if n_pos > 0:
-            loss_pos = ops.cross_entropy(predict, target, reduction='none')
-            loss_pos =(loss_pos * pos).sum()
-            
-            loss_neg = ops.cross_entropy(predict, target, reduction='none')
-            
-            n_neg = min(
-                int(neg.sum().astype('float32').item(0)),
-                int(self.ohem_ratio * n_pos))
-        else:
-            loss_pos = ms.Tensor(0., ms.float32) 
-            loss_neg = ops.cross_entropy(predict, target, reduction='none')
-            n_neg = 100
-        if len(loss_neg) > n_neg:
+        n_pos = ops.stop_gradient(pos.sum())
+        n_neg = ops.stop_gradient(min(neg.sum(), self.ohem_ratio * n_pos).astype(ms.int32))
+        if n_pos < 1:
+            n_neg = ms.Tensor(100, ms.int32)
+        loss = ops.cross_entropy(predict, target, reduction='none')
+        loss_pos = (loss * pos).sum()
+        loss_neg = loss * neg
+        if neg.sum() > n_neg:
             negative_value, _ = self.sort_descending(loss_neg)  # Top K
             con_k = negative_value[n_neg - 1]
-            con_mask = (negative_value >= con_k).astype(negative_value.dtype)
+            con_mask = ops.stop_gradient((negative_value >= con_k).astype(negative_value.dtype))
             loss_neg = negative_value * con_mask
-            
-
-        return (loss_pos + loss_neg.sum()) / (ms.Tensor(n_pos, ms.float32) + ms.Tensor(n_neg, ms.float32))
-
+        return (loss_pos + loss_neg.sum()) / (n_pos + n_neg.astype(ms.float32) + 1e-7)
+        
             
 
     def fourier2poly(self, real_maps, imag_maps):
@@ -220,10 +193,16 @@ class FCELoss(nn.Cell):
         transform_matrix = 2 * np.pi / self.num_sample * ops.matmul(
             k_vect, i_vect)
 
-        x1 = self.einsum((real_maps,ops.cos(transform_matrix)))
-        x2 = self.einsum((imag_maps,ops.sin(transform_matrix)))
-        y1 = self.einsum((real_maps,ops.sin(transform_matrix)))
-        y2 = self.einsum((imag_maps,ops.cos(transform_matrix)))
+        # x1 = self.einsum((real_maps,ops.cos(transform_matrix)))
+        # x2 = self.einsum((imag_maps,ops.sin(transform_matrix)))
+        # y1 = self.einsum((real_maps,ops.sin(transform_matrix)))
+        # y2 = self.einsum((imag_maps,ops.cos(transform_matrix)))
+        
+        x1 = ops.matmul(real_maps,ops.cos(transform_matrix))
+        x2 = ops.matmul(imag_maps,ops.sin(transform_matrix))
+        y1 = ops.matmul(real_maps,ops.sin(transform_matrix))
+        y2 = ops.matmul(imag_maps,ops.cos(transform_matrix))
+
 
         
         x_maps = x1 - x2

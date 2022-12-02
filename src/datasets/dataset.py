@@ -151,7 +151,7 @@ class ICDAR_TrainDataset():
         
 
 def CTW_Test_Generator(root_dir):
-    label_file_list = os.path.join(root_dir, "instances_training.txt")
+    label_file_list = os.path.join(root_dir, "instances_test.txt")
     if isinstance(label_file_list, str):
             label_file_list = [label_file_list]
     data_lines = []
@@ -181,8 +181,7 @@ def CTW_Test_Generator(root_dir):
         for ops in opss:
             data = ops(data)
 
-        yield data['image'],data['shape'], data['polys'], data['ignore_tags'],data['img_path']
-        
+        yield data['image'],data['shape'], data['polys'], data['ignore_tags'],data['img_path'],data['texts']
         
 def ICDAR_Test_Generator(root_dir):
     label_file_list = os.path.join(root_dir, "instances_test.txt")
@@ -214,7 +213,7 @@ def ICDAR_Test_Generator(root_dir):
         for ops in opss:
             data = ops(data)
 
-        yield data['image'],data['shape'], data['polys'], data['ignore_tags'],data['img_path']
+        yield data['image'],data['shape'], data['polys'], data['ignore_tags'],data['img_path'],data['texts']
 
 
 
@@ -227,16 +226,16 @@ def train_dataset_creator(config,shuffle=True):
         dataset = ICDAR_TrainDataset(config)
     data_set = ds.GeneratorDataset(dataset, ['img', 'p3_maps', 'p4_maps', 'p5_maps'], num_parallel_workers=1,
                                    num_shards=config.device_num, shard_id=config.rank_id,
-                                      shuffle=shuffle, max_rowsize=16)
+                                      shuffle=shuffle, max_rowsize=64)
     data_set = data_set.batch(config.TRAIN_BATCH_SIZE, drop_remainder=config.TRAIN_DROP_REMAINDER)
     return data_set
 
 
 def test_dataset_creator(config):
     if config.Data_NAME == "CTW1500":
-        data_set = ds.GeneratorDataset(CTW_Test_Generator(config.TEST_ROOT_DIR), ['image','shape', 'polys', 'ignore_tags','img_path'], num_parallel_workers=4)
+        data_set = ds.GeneratorDataset(CTW_Test_Generator(config.TEST_ROOT_DIR), ['image','shape', 'polys', 'ignore_tags','img_path','texts'], num_parallel_workers=4)
     else:
-        data_set = ds.GeneratorDataset(ICDAR_Test_Generator(config.TEST_ROOT_DIR), ['image','shape', 'polys', 'ignore_tags','img_path'], num_parallel_workers=4)
+        data_set = ds.GeneratorDataset(ICDAR_Test_Generator(config.TEST_ROOT_DIR), ['image','shape', 'polys', 'ignore_tags','img_path','texts'], num_parallel_workers=4)
         
     data_set = data_set.batch(1, drop_remainder=config.TEST_DROP_REMAINDER)
     return data_set

@@ -336,7 +336,7 @@ class RandomCropFlip:
         return h_axis, w_axis
 
 
-class RandomCropPolyInstances:
+class RandomCropPolyInstances:  #会变
     """Randomly crop images and make sure to contain at least one intact
     instance."""
 
@@ -767,8 +767,9 @@ class IaaAugment():
         if aug is None:
             return data
 
-        line_polys = []
+
         for key in ['polygons','ignore_polygons']:
+            line_polys = []
             if len(data[key]) == 0:
                 continue
             polygons = data[key]
