@@ -7,6 +7,7 @@
 
 # 目录
 - [FCENet 简介](#FCENet-简介)
+- [性能](#性能)
 - [数据集](#数据集)
 - [预训练模型](#预训练模型)
 - [配置环境](#配置环境)
@@ -28,6 +29,21 @@
 <img src="https://user-images.githubusercontent.com/49955700/202217983-81eddaa6-a37f-479e-b52b-e9ef2fb42ee6.jpg"/>
 </div>
 
+# [效果](#目录)
+
+## FCENet 验证性能(ICDAR2105)
+|  | Recall | Precision  | Hmean-iou 
+|:-|:-:|:-:|:-:|
+| Paper  | 84.2% | 85.1% | 84.6% |
+| Torch  | 81.2% | 88.7% | 84.7% |
+| MindSpore  | 80.7% | 88.4% | 84.4% |
+
+## FCENet 验证性能(CTW1500)
+|  | Recall | Precision  | Hmean-iou 
+|:-|:-:|:-:|:-:|
+| Paper  | 80.7% | 85.7% | 83.1% |
+| Torch  | 79.1% | 83.0% | 81.0% |
+| MindSpore  | 82.3% | 83.5% | 82.8% |
 
 # [数据集](#目录)
 
@@ -145,19 +161,47 @@ python tools/resnet_model_torch2mindspore.py --torch_file=/path_to_model/resnet5
 
 通过官方网站安装MindSpore后，你可以开始训练和验证，具体步骤如下：
 
+- 在GPU上运行
+
 ```shell
 # 运行训练
-python train.py
-nohup python train.py --config_path='./configs/ICDAR2015_config.yaml' > ICDAR_ceshi.log &
+CUDA_VISIBLE_DEVICES=1 nohup python train.py --config_path='./configs/CTW1500_config.yaml' > CTW1500_out.log &
+
+nohup python train.py --config_path='./configs/ICDAR2015_config.yaml' > ICDAR2015_out.log &
 
 # 运行分布式训练
-CUDA_VISIBLE_DEVICES=2,3 sh scripts/run_distribute_train_gpu.sh
+CUDA_VISIBLE_DEVICES=0,1,2,3 sh scripts/run_distribute_train_gpu.sh
 
 # 运行测试
 python test.py
+
 python test.py --config_path='./configs/CTW1500_config.yaml'
 
 python test.py --config_path='./configs/ICDAR2015_config.yaml'
+
+# 推理展示检测结果
+python infer_det.py
+
+python infer_det.py --config_path='./configs/ICDAR2015_config.yaml'
+```
+
+- 在Ascend上运行
+
+```shell
+# 运行训练
+nohup python train.py --config_path='./configs/CTW1500_config.yaml' --device_target='Ascend' > CTW1500_out.log &
+
+nohup python train.py --config_path='./configs/ICDAR2015_config.yaml' --device_target='Ascend' > ICDAR2015_out.log &
+
+# 运行分布式训练
+sh scripts/run_distribute_train_ascend.sh
+
+# 运行测试
+python test.py
+
+python test.py --config_path='./configs/CTW1500_config.yaml' --device_target='Ascend'
+
+python test.py --config_path='./configs/ICDAR2015_config.yaml' --device_target='Ascend'
 
 # 推理展示检测结果
 python infer_det.py

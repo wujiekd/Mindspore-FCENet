@@ -7,6 +7,7 @@ English | [简体中文](README_zh-CN.md)
 
 # Contents
 - [FCENet Description](#fCENet-description)
+- [Performance](#performance)
 - [Dataset](#dataset)
 - [Pretrained Model](#pretrained-model)
 - [Environment Requirements](#environment-requirements)
@@ -28,6 +29,22 @@ Fourier Contour Embedding Network (FCENet) is a text detector which is able to w
 <img src="https://user-images.githubusercontent.com/49955700/202217983-81eddaa6-a37f-479e-b52b-e9ef2fb42ee6.jpg"/>
 </div>
 
+
+# [Performance](#contents)
+
+## FCENet Val Performance(ICDAR2105).
+|  | Recall | Precision  | Hmean-iou 
+|:-|:-:|:-:|:-:|
+| Paper  | 84.2% | 85.1% | 84.6% |
+| Torch  | 81.2% | 88.7% | 84.7% |
+| MindSpore  | 80.7% | 88.4% | 84.4% |
+
+## FCENet Val Performance(CTW1500).
+|  | Recall | Precision  | Hmean-iou 
+|:-|:-:|:-:|:-:|
+| Paper  | 80.7% | 85.7% | 83.1% |
+| Torch  | 79.1% | 83.0% | 81.0% |
+| MindSpore  | 82.3% | 83.5% | 82.8% |
 
 
 # [Dataset](#contents)
